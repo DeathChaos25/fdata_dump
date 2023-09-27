@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO.Compression;
+using System.Reflection;
+using CsvHelper;
 
 namespace fdata_dump
 {
     class Program
     {
+        public static List<RDB_Names> GlobalNameList = new List<RDB_Names>();
+
         public static async Task Main(string[] args)
         {
             Stopwatch timer = new Stopwatch();
@@ -18,6 +23,9 @@ namespace fdata_dump
                 Console.ReadKey();
                 return;
             }
+
+            string csv_path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "rdb_common.csv"); // get names csv from app folder
+            GlobalNameList = ProcessRDBCSV(csv_path);
 
             string[] filePaths = Directory.GetFiles(args[0], "*.fdata*", SearchOption.AllDirectories);
 
@@ -68,6 +76,8 @@ namespace fdata_dump
 
                         string ext = getExtensionFromKTIDInfo(typeInfoKtid);
                         string fname = $"0x{fileKtid:X}.{ext}";
+
+                        fname = getPredefinedName(fname); // check if name matches in csv
 
                         // Console.WriteLine($"Expected filename is {fname}");
 
@@ -343,6 +353,36 @@ namespace fdata_dump
                 // Console.WriteLine($"Unknown TypeInfo 0x{ktid_typeinfo:X}");
                 return $"0x{ktid_typeinfo:X}";
             }
+        }
+
+        public static List<RDB_Names> ProcessRDBCSV(string csvData)
+        {
+            using (var reader = new StreamReader(csvData))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                return csv.GetRecords<RDB_Names>().ToList();
+            }
+        }
+
+        public static string getPredefinedName( string filename )
+        {
+            foreach (RDB_Names nameEntry in GlobalNameList)
+            {
+                // Console.WriteLine($"Comparing {Path.GetFileNameWithoutExtension(filename)} to target name 0x{nameEntry.Hash:X}");
+
+                if (Path.GetFileNameWithoutExtension(filename).ToLower() == $"0x{nameEntry.Hash}".ToLower())
+                {
+                    Console.WriteLine($"RDB File {filename} matched to name {nameEntry.Name}");
+                    filename = nameEntry.Name;
+                }
+            }
+            return filename;
+        }
+
+        public class RDB_Names
+        {
+            public string Hash { get; set; }
+            public string Name { get; set; }
         }
     }
 }

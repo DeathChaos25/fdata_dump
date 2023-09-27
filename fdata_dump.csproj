@@ -7,10 +7,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /y $(ProjectDir)rdb_common.csv  $(ProjectDir)$(OutDir)" />
+  </Target>
+
   <ItemGroup>
-    <Reference Include="Amicitia.IO">
-      <HintPath>ref\Amicitia.IO.dll</HintPath>
-    </Reference>
+    <PackageReference Include="CsvHelper" Version="30.0.1" />
   </ItemGroup>
 
 </Project>
