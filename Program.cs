@@ -56,10 +56,10 @@ namespace fdata_dump
                     while (reader.BaseStream.Position < reader.BaseStream.Length)
                     {
                         IDRKOffset = reader.BaseStream.Position;
-                        // Console.WriteLine($"IDRKOffset is 0x{IDRKOffset:X}");
+                        // Console.WriteLine($"IDRKOffset is {IDRKOffset:X}");
 
                         long magicVersion = reader.ReadInt64();
-                        // Console.WriteLine($"IDRK 0x{magicVersion:X}");
+                        // Console.WriteLine($"IDRK {magicVersion:X}");
                         long entrySize = reader.ReadInt64();
                         long compSize = reader.ReadInt64();
                         long decompSize = reader.ReadInt64();
@@ -72,10 +72,10 @@ namespace fdata_dump
 
                         reader.BaseStream.Position += SKIP;
 
-                        // Console.WriteLine($"Temp: 0x{reader.BaseStream.Position:X}");
+                        // Console.WriteLine($"Temp: {reader.BaseStream.Position:X}");
 
                         string ext = getExtensionFromKTIDInfo(typeInfoKtid);
-                        string fname = $"0x{fileKtid:X}.{ext}";
+                        string fname = $"{fileKtid:X}.{ext}";
 
                         fname = getPredefinedName(fname); // check if name matches in csv
 
@@ -99,7 +99,7 @@ namespace fdata_dump
                         {
                             short zsize = reader.ReadInt16();
 
-                            // Console.WriteLine($"zsize {zsize} at 0x{reader.BaseStream.Position:X}");
+                            // Console.WriteLine($"zsize {zsize} at {reader.BaseStream.Position:X}");
                             long junk = reader.ReadInt64();
 
                             byte[] compressedData;
@@ -133,11 +133,11 @@ namespace fdata_dump
                         targetPadding += ((0x10 - targetPadding % 0x10) % 0x10);
 
                         // Console.WriteLine($"NextPost calculated as {targetPadding}");
-                        // Console.WriteLine($"Current Offset is 0x{reader.BaseStream.Position:X8}");
+                        // Console.WriteLine($"Current Offset is {reader.BaseStream.Position:X8}");
 
                         reader.BaseStream.Position = targetPadding;
 
-                        // Console.WriteLine($"Fixed offset is 0x{reader.BaseStream.Position:X8}");
+                        // Console.WriteLine($"Fixed offset is {reader.BaseStream.Position:X8}");
 
                         // Console.WriteLine($"\n");
                     }
@@ -350,8 +350,8 @@ namespace fdata_dump
             }
             else
             {
-                // Console.WriteLine($"Unknown TypeInfo 0x{ktid_typeinfo:X}");
-                return $"0x{ktid_typeinfo:X}";
+                // Console.WriteLine($"Unknown TypeInfo {ktid_typeinfo:X}");
+                return $"{ktid_typeinfo:X}";
             }
         }
 
@@ -368,9 +368,9 @@ namespace fdata_dump
         {
             foreach (RDB_Names nameEntry in GlobalNameList)
             {
-                // Console.WriteLine($"Comparing {Path.GetFileNameWithoutExtension(filename)} to target name 0x{nameEntry.Hash:X}");
+                // Console.WriteLine($"Comparing {Path.GetFileNameWithoutExtension(filename)} to target name {nameEntry.Hash:X}");
 
-                if (Path.GetFileNameWithoutExtension(filename).ToLower() == $"0x{nameEntry.Hash}".ToLower())
+                if (Path.GetFileNameWithoutExtension(filename).ToLower() == $"{nameEntry.Hash}".ToLower())
                 {
                     Console.WriteLine($"RDB File {filename} matched to name {nameEntry.Name}");
                     filename = nameEntry.Name;
