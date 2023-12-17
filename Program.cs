@@ -171,182 +171,47 @@ namespace fdata_dump
             }
         }
 
+        private static readonly Dictionary<uint, string> ExtensionMap = new Dictionary<uint, string>
+        {
+            { 0x563bdef1, "g1m" },
+            { 0x6fa91671, "g1a" },
+            { 0xafbec60c, "g1t" },
+            { 0x8e39aa37, "ktid" },
+            { 0xbe144b78, "ktid" },
+            { 0x20a6a0bb, "kidsobjdb" },
+            { 0x5153729b, "mtl" },
+            { 0xb340861a, "mtl" },
+            { 0x56efe45c, "grp" },
+            { 0xbbf9b49d, "grp" },
+            { 0x0d34474d, "srst" },
+            { 0x27bc54b7, "rigbin" },
+            { 0x54738c76, "g1co" },
+            { 0x56d8deda, "sid" },
+            { 0x5c3e543c, "swg" },
+            { 0x7bcd279f, "g1s" },
+            { 0x9cb3a4b6, "oidex" },
+            { 0xbbd39f2d, "srsa" },
+            { 0x1ab40ae8, "oid" },
+            { 0xed410290, "kts" },
+            { 0x1fdcaa40, "kidstask" },
+            { 0x4D0102AC, "g1em" },
+            { 0x5599AA51, "kscl" },
+            { 0xB097D41F, "g1e" },
+            { 0xB1630F51, "kidsrender" },
+            { 0xD7F47FB1, "efpl" },
+            { 0xF20DE437, "texinfo" },
+            { 0xF13845EF, "sclshape" },
+            { 0xa8d88566, "g1cox" },
+            { 0x17614AF5, "g1mx" },
+            { 0x79C724C2, "g1p" },
+            { 0xb0a14534, "sgcbin" }
+        };
+
         public static string getExtensionFromKTIDInfo( uint ktid_typeinfo )
         {
-            string returnStr = "";
-            if (ktid_typeinfo == 0x563bdef1)
+            if (ExtensionMap.TryGetValue(ktid_typeinfo, out var extension))
             {
-                returnStr = "g1m";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x6fa91671)
-            {
-                returnStr = "g1a";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0xafbec60c)
-            {
-                returnStr = "g1t";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x8e39aa37 || ktid_typeinfo == 0xbe144b78)
-            {
-                returnStr = "ktid";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x20a6a0bb)
-            {
-                returnStr = "kidsobjdb";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x5153729b || ktid_typeinfo == 0xb340861a)
-            {
-                returnStr = "mtl";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x56efe45c || ktid_typeinfo == 0xbbf9b49d)
-            {
-                returnStr = "grp";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x0d34474d)
-            {
-                returnStr = "srst";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x27bc54b7)
-            {
-                returnStr = "rigbin";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x54738c76)
-            {
-                returnStr = "g1co";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x56d8deda)
-            {
-                returnStr = "sid";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x5c3e543c)
-            {
-                returnStr = "swg";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x7bcd279f)
-            {
-                returnStr = "g1s";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x9cb3a4b6)
-            {
-                returnStr = "oidex";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0xbbd39f2d)
-            {
-                returnStr = "srsa";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x1ab40ae8)
-            {
-                returnStr = "oid";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0xed410290)
-            {
-                returnStr = "kts";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x1fdcaa40)
-            {
-                returnStr = "kidstask";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x4D0102AC)
-            {
-                returnStr = "g1em";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x5599AA51)
-            {
-                returnStr = "kscl";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0xB097D41F)
-            {
-                returnStr = "g1e";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0xB1630F51)
-            {
-                returnStr = "kidsrender";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0xD7F47FB1)
-            {
-                returnStr = "efpl";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0xF20DE437)
-            {
-                returnStr = "texinfo";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0xF13845EF)
-            {
-                returnStr = "sclshape";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0xa8d88566)
-            {
-                returnStr = "g1cox";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x17614AF5)
-            {
-                returnStr = "g1mx";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0x79C724C2)
-            {
-                returnStr = "g1p";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
-            }
-            else if (ktid_typeinfo == 0xb0a14534)
-            {
-                returnStr = "sgcbin";
-                // Console.WriteLine($"TypeInfo is {returnStr}");
-                return returnStr;
+                return extension;
             }
             else
             {
