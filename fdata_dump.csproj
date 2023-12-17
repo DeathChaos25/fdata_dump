@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y $(ProjectDir)rdb_common.csv  $(ProjectDir)$(OutDir)" />
+    <Exec Command="xcopy /y &quot;$(ProjectDir)rdb_common.csv&quot;  &quot;$(OutDir)&quot;&#xD;&#xA;xcopy /y &quot;$(ProjectDir)rdb_extensions.csv&quot;  &quot;$(OutDir)&quot;" />
   </Target>
 
   <ItemGroup>

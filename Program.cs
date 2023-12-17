@@ -10,6 +10,7 @@ namespace fdata_dump
     class Program
     {
         public static List<RDB_Names> GlobalNameList = new List<RDB_Names>();
+        public static List<RDB_HashMap> ExtensionsDictionary = new List<RDB_HashMap>();
 
         public static async Task Main(string[] args)
         {
@@ -26,6 +27,9 @@ namespace fdata_dump
 
             string csv_path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "rdb_common.csv"); // get names csv from app folder
             GlobalNameList = ProcessRDBCSV(csv_path);
+
+            string csv_ext_path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "rdb_extensions.csv"); // get extension dictionary csv from app folder
+            ExtensionsDictionary = ProcessExtensionsCSV(csv_ext_path);
 
             string[] filePaths = Directory.GetFiles(args[0], "*.fdata*", SearchOption.AllDirectories);
 
@@ -209,15 +213,17 @@ namespace fdata_dump
 
         public static string getExtensionFromKTIDInfo( uint ktid_typeinfo )
         {
-            if (ExtensionMap.TryGetValue(ktid_typeinfo, out var extension))
+            foreach (RDB_HashMap hashEntry in ExtensionsDictionary)
             {
-                return extension;
+                if (hashEntry.ktid_typeinfo.ToLower() == $"{ktid_typeinfo:X}".ToLower())
+                {
+                    return hashEntry.extension;
+                }
             }
-            else
-            {
-                // Console.WriteLine($"Unknown TypeInfo {ktid_typeinfo:X}");
-                return $"{ktid_typeinfo:X}";
-            }
+
+
+            // Console.WriteLine($"Unknown TypeInfo {ktid_typeinfo:X}");
+            return $"{ktid_typeinfo:X}";
         }
 
         public static List<RDB_Names> ProcessRDBCSV(string csvData)
@@ -226,6 +232,15 @@ namespace fdata_dump
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
                 return csv.GetRecords<RDB_Names>().ToList();
+            }
+        }
+
+        public static List<RDB_HashMap> ProcessExtensionsCSV(string csvData)
+        {
+            using (var reader = new StreamReader(csvData))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                return csv.GetRecords<RDB_HashMap>().ToList();
             }
         }
 
@@ -248,6 +263,12 @@ namespace fdata_dump
         {
             public string Hash { get; set; }
             public string Name { get; set; }
+        }
+
+        public class RDB_HashMap
+        {
+            public string ktid_typeinfo { get; set; }
+            public string extension { get; set; }
         }
     }
 }
