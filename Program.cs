@@ -101,7 +101,7 @@ namespace fdata_dump
 
                         while (decompSize > 0)
                         {
-                            short zsize = reader.ReadInt16();
+                            ushort zsize = reader.ReadUInt16();
 
                             // Console.WriteLine($"zsize {zsize} at {reader.BaseStream.Position:X}");
                             long junk = reader.ReadInt64();
