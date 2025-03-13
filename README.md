@@ -10,7 +10,6 @@ Currently Confirmed working games:
   - Fate/Samurai Remnant
   - Fairy Tail 2
   - Dynasty Warriors: Origin
-  - Rise of the Ronin
 
 
 (Note: Just because the game has not been tested and confirmed working does not mean it will not work, unless explicitly stated otherwise)
