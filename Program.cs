@@ -12,6 +12,8 @@ namespace fdata_dump
         public static List<RDB_Names> GlobalNameList = new List<RDB_Names>();
         public static List<RDB_HashMap> ExtensionsDictionary = new List<RDB_HashMap>();
 
+        public static bool DEBUG = false;
+
         public static async Task Main(string[] args)
         {
             Stopwatch timer = new Stopwatch();
@@ -53,37 +55,23 @@ namespace fdata_dump
                 using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
                 {
                     reader.BaseStream.Position = 0x10;
-                    long IDRKOffset = 0;
-
                     Console.WriteLine($"Processing FData file {Path.GetFileName(filePath)}");
+
+                    long IDRKOffset = 0;
 
                     while (reader.BaseStream.Position < reader.BaseStream.Length)
                     {
+                        if (DEBUG) Console.WriteLine($"IDRK at 0x{reader.BaseStream.Position:X}");
                         IDRKOffset = reader.BaseStream.Position;
-                        // Console.WriteLine($"IDRKOffset is {IDRKOffset:X}");
 
-                        long magicVersion = reader.ReadInt64();
-                        // Console.WriteLine($"IDRK {magicVersion:X}");
-                        long entrySize = reader.ReadInt64();
-                        long compSize = reader.ReadInt64();
-                        long decompSize = reader.ReadInt64();
-                        int entryType = reader.ReadInt32();
-                        int fileKtid = reader.ReadInt32();
-                        uint typeInfoKtid = reader.ReadUInt32();
+                        RDB.RdbEntry entry = RDB.ReadEntry(reader);
 
-                        long SKIP = entrySize - compSize;
-                        SKIP -= 0x2C;
-
-                        reader.BaseStream.Position += SKIP;
-
-                        // Console.WriteLine($"Temp: {reader.BaseStream.Position:X}");
-
-                        string ext = getExtensionFromKTIDInfo(typeInfoKtid);
-                        string fname = $"{fileKtid:X}.{ext}";
+                        string ext = getExtensionFromKTIDInfo(entry.TypeInfoKtid);
+                        string fname = $"{entry.FileKtid:X}.{ext}";
 
                         fname = getPredefinedName(fname); // check if name matches in csv
 
-                        // Console.WriteLine($"Expected filename is {fname}");
+                        if (DEBUG) Console.WriteLine($"Expected filename is {fname}");
 
                         string fullName = Path.Combine(Path.GetDirectoryName(filePath), "fdata_out", ext);
                         Directory.CreateDirectory(fullName);
@@ -91,7 +79,7 @@ namespace fdata_dump
 
                         if (File.Exists(outputPath))
                         {
-                            decompSize = 0;
+                            entry.FileSize = 0;
                             Console.WriteLine($"Skipping FData file {Path.GetFileName(filePath)} target file {fname}");
                         }
                         else
@@ -99,51 +87,53 @@ namespace fdata_dump
                             Console.WriteLine($"Extracting FData file {Path.GetFileName(filePath)} target file {fname}");
                         }
 
-                        while (decompSize > 0)
+                        if (entry.CompSize == entry.FileSize)
                         {
-                            ushort zsize = reader.ReadUInt16();
-
-                            // Console.WriteLine($"zsize {zsize} at {reader.BaseStream.Position:X}");
-                            long junk = reader.ReadInt64();
-
-                            byte[] compressedData;
-                            byte[] decompressedData;
-
-                            if (compSize == decompSize)
-                            {
-                                decompressedData = reader.ReadBytes((int)zsize);
-                                decompSize = 0;
-                            }
-                            else if (decompSize > 16384)
-                            {
-                                compressedData = reader.ReadBytes((int)zsize);
-                                decompressedData = DecompressStream(compressedData, 16384);
-                                decompSize -= 16384;
-                            }
-                            else
-                            {
-                                compressedData = reader.ReadBytes((int)zsize);
-                                decompressedData = DecompressStream(compressedData, (int)decompSize);
-                                decompSize = 0;
-                            }
-
-                            using (FileStream output = new FileStream(outputPath, FileMode.Append, FileAccess.Write, FileShare.None))
+                            byte[] decompressedData = reader.ReadBytes((int)entry.FileSize);
+                            using (FileStream output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None))
                             {
                                 output.Write(decompressedData);
                             }
+                            if (DEBUG) Console.WriteLine($"File {fname} is not compressed; skipping decompression step");
                         }
+                        else
+                        {
+                            while (entry.FileSize > 0)
+                            {
+                                ushort zsize = reader.ReadUInt16();
 
-                        var targetPadding = IDRKOffset + entrySize;
-                        targetPadding += ((0x10 - targetPadding % 0x10) % 0x10);
+                                if (DEBUG) Console.WriteLine($"zsize 0x{zsize:X} at 0x{reader.BaseStream.Position - 2:X}");
+                                long junk = reader.ReadInt64();
 
-                        // Console.WriteLine($"NextPost calculated as {targetPadding}");
-                        // Console.WriteLine($"Current Offset is {reader.BaseStream.Position:X8}");
+                                byte[] compressedData;
+                                byte[] decompressedData;
 
-                        reader.BaseStream.Position = targetPadding;
+                                if (entry.FileSize > 16384)
+                                {
+                                    compressedData = reader.ReadBytes((int)zsize);
+                                    decompressedData = DecompressStream(compressedData, 16384);
+                                    entry.FileSize -= 16384;
+                                }
+                                else
+                                {
+                                    compressedData = reader.ReadBytes((int)zsize);
+                                    decompressedData = DecompressStream(compressedData, (int)entry.FileSize);
+                                    entry.FileSize = 0;
+                                }
 
-                        // Console.WriteLine($"Fixed offset is {reader.BaseStream.Position:X8}");
+                                using (FileStream output = new FileStream(outputPath, FileMode.Append, FileAccess.Write, FileShare.None))
+                                {
+                                    output.Write(decompressedData);
+                                }
+                            }
+                        }
+                        if (DEBUG) Console.WriteLine($"RDB Data end at 0x{reader.BaseStream.Position:X}");
 
-                        // Console.WriteLine($"\n");
+                        reader.BaseStream.Position = IDRKOffset + (long)entry.EntrySize;
+                        reader.BaseStream.Position += ((0x10 - reader.BaseStream.Position % 0x10) % 0x10);
+
+                        if (DEBUG) Console.WriteLine($"After padding 0x{reader.BaseStream.Position:X}");
+                        if (DEBUG) Console.WriteLine();
                     }
 
                     Console.WriteLine($"Finished processing FData file {Path.GetFileName(filePath)}");
@@ -185,8 +175,6 @@ namespace fdata_dump
                 }
             }
 
-
-            // Console.WriteLine($"Unknown TypeInfo {ktid_typeinfo:X}");
             return $"{ktid_typeinfo:X}";
         }
 
@@ -212,8 +200,6 @@ namespace fdata_dump
         {
             foreach (RDB_Names nameEntry in GlobalNameList)
             {
-                // Console.WriteLine($"Comparing {Path.GetFileNameWithoutExtension(filename)} to target name {nameEntry.Hash:X}");
-
                 if (Path.GetFileNameWithoutExtension(filename).ToLower() == $"{nameEntry.Hash}".ToLower())
                 {
                     Console.WriteLine($"RDB File {filename} matched to name {nameEntry.Name}");
