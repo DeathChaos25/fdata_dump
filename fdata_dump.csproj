@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,11 +8,25 @@
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y &quot;$(ProjectDir)rdb_common.csv&quot;  &quot;$(OutDir)&quot;&#xD;&#xA;xcopy /y &quot;$(ProjectDir)rdb_extensions.csv&quot;  &quot;$(OutDir)&quot;" />
+    <Exec Command="xcopy /y &quot;$(ProjectDir)rdb_common.csv&quot;  &quot;$(OutDir)&quot;&#xD;&#xA;xcopy /y &quot;$(ProjectDir)rdb_extensions.csv&quot;  &quot;$(OutDir)&quot;&#xD;&#xA;xcopy /y &quot;$(ProjectDir)priority.txt&quot;  &quot;$(OutDir)&quot;&#xD;&#xA;xcopy /y &quot;$(ProjectDir)debug.txt&quot;  &quot;$(OutDir)&quot;&#xD;&#xA;xcopy /y &quot;$(ProjectDir)objdb.txt&quot;  &quot;$(OutDir)&quot;&#xD;&#xA;xcopy /y &quot;$(ProjectDir)kidstypeinfodb.yml&quot;  &quot;$(OutDir)&quot;" />
   </Target>
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="30.0.1" />
+    <PackageReference Include="YamlDotNet" Version="9.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ref\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="lwio">
+      <HintPath>ref\lwio.dll</HintPath>
+    </Reference>
+    <Reference Include="p5spclib">
+      <HintPath>ref\p5spclib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

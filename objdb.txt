@@ -1,0 +1,4 @@
+CharacterEditor.kidssingletondb
+Field_Common.character.level.kidssingletondb
+Field_Common.effect.kidssingletondb
+MaterialEditor.kidssingletondb
