@@ -50,9 +50,6 @@ The program will do a few pre-processing passes before dumping your files to ens
 Sample output from [Ceathleann](https://github.com/yretenai/Cethleann) when building a G1T using the provided names list if it exists:
 ![cmd screenshot](https://i.imgur.com/wvKClRU.png)  
 
-# Donations
-If you would like to give any donations, [you can do so through this link](https://ko-fi.com/deathchaos).
-
 
 # Special Thanks
 - [TGE](https://github.com/tge-was-taken) - kidsobjdb parsing (not necessary but useful for grouping files when dumping for a cleaner output)
