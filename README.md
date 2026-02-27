@@ -14,6 +14,7 @@ Currently Confirmed working games:
   - Rise of the Ronin
   - Atelier Yumia
   - Fire Emblem Warriors: Three Hopes (use -FE argument in command line)
+  - Nioh 3 (use -FE argument in command line)
   
   
   
