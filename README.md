@@ -13,6 +13,8 @@ Currently Confirmed working games:
   - Dynasty Warriors: Origin
   - Rise of the Ronin
   - Atelier Yumia
+  - FATAL FRAME II: Crimson Butterfly REMAKE
+  - 
   - Fire Emblem Warriors: Three Hopes (use -FE argument in command line)
   - Nioh 3 (use -FE argument in command line)
   
