@@ -2,7 +2,7 @@
 
 This is a tool used to extract/dump files from Koei Tecmo games fdata archive format.  
 
-Usage: Drag and Drop the folder containing all the fdata files into the tool's exe (usually named "Motor"), and it will start the extraction process, please note that depending on the game/your HDD speeds this process can take up anywhere up to 2-3 hours on big games and slow HDDs!  
+Usage: Drag and Drop the folder containing all the fdata files into the tool's exe (common folder names include "Motor", "fdata_package" and so on), and it will start the extraction process, please note that depending on the game/your HDD speeds this process can take up anywhere up to 2-3 hours on big games and slow HDDs!  
 
 This program supports extracting in "sessions", before extracting a file, it will check if the output file does not already exist, meaning if a file has already been extracted, the program will skip the extraction process on that file and move on, meaning you can dump your fdata files in "sessions" that you can interrupt until you get all the files dumped.
   
