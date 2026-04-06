@@ -12,7 +12,9 @@ using p5spclib.Model.Intermediate;
 
 namespace fdata_dump
 {
-    class Program
+    public enum FdataMode { Default, FEThreeHopes }
+
+    public class Program
     {
         public static List<RDB_Names> GlobalNameList = new List<RDB_Names>();
         public static List<RDB_HashMap> ExtensionsDictionary = new List<RDB_HashMap>();
@@ -21,6 +23,8 @@ namespace fdata_dump
 
         public static bool DEBUG = false;
         public static bool Log = true;
+
+        public static FdataMode Mode = FdataMode.Default;
 
         public static string inPath = String.Empty;
 
@@ -39,8 +43,8 @@ namespace fdata_dump
             {
                 Console.WriteLine("Usage: drag and drop the folder where the .fdata files are located (subfolders are checked).");
                 Console.WriteLine("Optional arguments:");
-                Console.WriteLine("  -fe : Enable FEW Three Hopes dumping mode.");
-                Console.WriteLine("  -l  : Disable (most) logging.");
+                Console.WriteLine("  -v1 (or -fe) : Enable v1 dumping mode (for FEW: Three Hopes and Nioh 3 compatibility).");
+                Console.WriteLine("  -l           : Disable (most) logging.");
                 Console.WriteLine("\nPress any key to exit...");
                 Console.ReadKey();
                 return;
@@ -48,7 +52,8 @@ namespace fdata_dump
 
             var optionalArgs = new Dictionary<string, bool>
             {
-                { "-fe", false }, // FEW Three Hopes mode
+                { "-v1", false }, // v1 mode (FEW: Three Hopes / Nioh 3)
+                { "-fe", false }, // legacy alias for -v1
                 { "-l", false }   // Logging mode
             };
 
@@ -66,29 +71,42 @@ namespace fdata_dump
             }
 
             // Access the optional arguments
-            bool isFE = optionalArgs["-fe"];
+            bool isV1 = optionalArgs["-v1"] || optionalArgs["-fe"];
             bool disableLogging = optionalArgs["-l"];
 
             if (disableLogging) Log = false;
 
-            string csv_path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "rdb_common.csv"); // get names csv from app folder
+            await RunAsync(args[0], isV1 ? FdataMode.FEThreeHopes : FdataMode.Default);
+
+            timer.Stop();
+            Console.WriteLine($"\nDone! Time elapsed: {timer.Elapsed}\nPress any key to exit...");
+            Console.ReadKey();
+        }
+
+        public static async Task RunAsync(string inputPath, FdataMode mode)
+        {
+            Mode = mode;
+            OutputFileList.Clear();
+            TargetGroupingFolder.Clear();
+
+            string csv_path = Path.Combine(AppContext.BaseDirectory, "rdb_common.csv"); // get names csv from app folder
             GlobalNameList = ProcessRDBCSV(csv_path);
 
-            string csv_ext_path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "rdb_extensions.csv"); // get extension dictionary csv from app folder
+            string csv_ext_path = Path.Combine(AppContext.BaseDirectory, "rdb_extensions.csv"); // get extension dictionary csv from app folder
             ExtensionsDictionary = ProcessExtensionsCSV(csv_ext_path);
 
-            string priority_list = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "priority.txt");
+            string priority_list = Path.Combine(AppContext.BaseDirectory, "priority.txt");
             List<string> priorityList = File.ReadAllLines(priority_list).ToList();
 
-            string debug_list = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "debug.txt");
+            string debug_list = Path.Combine(AppContext.BaseDirectory, "debug.txt");
             List<string> debugList = File.ReadAllLines(debug_list).ToList();
 
-            string objdb_list = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "objdb.txt");
+            string objdb_list = Path.Combine(AppContext.BaseDirectory, "objdb.txt");
             List<string> objdbList = File.ReadAllLines(objdb_list).ToList();
 
             typeInfoDb = KidsTypeInfoDb.Load(Path.Combine(AppContext.BaseDirectory, "kidstypeinfodb.yml"));
 
-            inPath = args[0];
+            inPath = inputPath;
 
             string[] filePaths = Directory.GetFiles(inPath, "*.fdata*", SearchOption.AllDirectories);
 
@@ -104,19 +122,10 @@ namespace fdata_dump
 
             // Process .name files first
             Console.WriteLine("Attempting to find and process .name files...");
-            if (isFE)
+            if (mode == FdataMode.FEThreeHopes) Console.WriteLine("v1 mode enabled (FEW: Three Hopes / Nioh 3 compatibility).");
+            foreach (string filePath in debugFiles)
             {
-                foreach (string filePath in debugFiles)
-                {
-                    tasks.Add(Task.Run(() => ProcessFileAsyncFE(filePath)));
-                }
-            }
-            else
-            {
-                foreach (string filePath in debugFiles)
-                {
-                    tasks.Add(Task.Run(() => ProcessFileAsync(filePath)));
-                }
+                tasks.Add(Task.Run(() => ProcessFileAsync(filePath)));
             }
 
             await Task.WhenAll(tasks);
@@ -159,24 +168,11 @@ namespace fdata_dump
             }
 
             Console.WriteLine($"\nFinished Processing .name files");
-            timer.Stop();
-            timer.Restart();
-
 
             Console.WriteLine("Attempting to Pre-process important FData files to obtain grouping info...");
-            if (isFE)
+            foreach (string filePath in sortedFilePaths)
             {
-                foreach (string filePath in sortedFilePaths)
-                {
-                    tasks.Add(Task.Run(() => ProcessFileAsyncFE(filePath)));
-                }
-            }
-            else
-            {
-                foreach (string filePath in sortedFilePaths)
-                {
-                    tasks.Add(Task.Run(() => ProcessFileAsync(filePath)));
-                }
+                tasks.Add(Task.Run(() => ProcessFileAsync(filePath)));
             }
 
             await Task.WhenAll(tasks);
@@ -203,25 +199,12 @@ namespace fdata_dump
                 ProcessOBJDBFiles(filePath);
             }
 
-            Console.WriteLine($"\nFinished Processing .name files\nTime elapsed: {timer.Elapsed}");
-            timer.Stop();
-            timer.Restart();
+            Console.WriteLine($"\nFinished pre-processing");
 
             Console.WriteLine("Processing FData files...");
-            if (isFE)
+            foreach (string filePath in filePaths)
             {
-                Console.WriteLine("FEW Three Hopes mode enabled.");
-                foreach (string filePath in filePaths)
-                {
-                    tasks.Add(Task.Run(() => ProcessFileAsyncFE(filePath)));
-                }
-            }
-            else
-            {
-                foreach (string filePath in filePaths)
-                {
-                    tasks.Add(Task.Run(() => ProcessFileAsync(filePath)));
-                }
+                tasks.Add(Task.Run(() => ProcessFileAsync(filePath)));
             }
 
             await Task.WhenAll(tasks);
@@ -238,10 +221,6 @@ namespace fdata_dump
             }
 
             await Task.WhenAll(tasks);
-
-            timer.Stop();
-            Console.WriteLine($"\nDone! Time elapsed: {timer.Elapsed}\nPress any key to exit...");
-            Console.ReadKey();
         }
 
         public static void ProcessOBJDBFiles(string filePath)
@@ -273,104 +252,6 @@ namespace fdata_dump
                             }
                         }
                     }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error reading file: " + filePath + ": " + ex.Message);
-            }
-        }
-
-
-        public static async Task ProcessFileAsyncFE(string filePath) // FEW Three Hopes mode
-        {
-            try
-            {
-                using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
-                {
-                    reader.BaseStream.Position = 0x10;
-                    if (Log) Console.WriteLine($"Processing FData file {Path.GetFileName(filePath)}");
-
-                    long IDRKOffset = 0;
-
-                    while (reader.BaseStream.Position < reader.BaseStream.Length)
-                    {
-                        if (DEBUG) Console.WriteLine($"IDRK at 0x{reader.BaseStream.Position:X}");
-                        IDRKOffset = reader.BaseStream.Position;
-
-                        RDB.RdbEntry entry = RDB.ReadEntry(reader);
-
-                        string ext = getExtensionFromKTIDInfo(entry.TypeInfoKtid);
-                        string fname = $"{entry.FileKtid:X8}.{ext}";
-
-                        fname = getPredefinedName(fname).ToLower(); // check if name matches in csv
-
-                        if (DEBUG) Console.WriteLine($"Expected filename is {fname}");
-
-                        string fullName = Path.Combine(inPath, "fdata_out", ext);
-                        Directory.CreateDirectory(fullName);
-                        string outputPath = Path.Combine(fullName, fname);
-
-                        if (File.Exists(outputPath))
-                        {
-                            entry.FileSize = 0;
-                            // if (Log) Console.WriteLine($"Skipping FData file {Path.GetFileName(filePath)} target file {fname}");
-                        }
-                        else
-                        {
-                            if (Log) Console.WriteLine($"Extracting FData file {Path.GetFileName(filePath)} target file {fname}");
-                        }
-
-                        if (entry.CompSize == entry.FileSize)
-                        {
-                            byte[] decompressedData = reader.ReadBytes((int)entry.FileSize);
-                            using (FileStream output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None))
-                            {
-                                output.Write(decompressedData);
-                            }
-                            if (DEBUG) Console.WriteLine($"File {fname} is not compressed; skipping decompression step");
-                        }
-                        else
-                        {
-                            while (entry.FileSize > 0)
-                            {
-                                uint zsize = reader.ReadUInt32();
-
-                                if (DEBUG) Console.WriteLine($"zsize 0x{zsize:X} at 0x{reader.BaseStream.Position - 2:X}");
-                                // long junk = reader.ReadInt64();
-
-                                byte[] compressedData;
-                                byte[] decompressedData;
-
-                                if (entry.FileSize > 16384)
-                                {
-                                    compressedData = reader.ReadBytes((int)zsize);
-                                    decompressedData = DecompressStream(compressedData, 16384);
-                                    entry.FileSize -= 16384;
-                                }
-                                else
-                                {
-                                    compressedData = reader.ReadBytes((int)zsize);
-                                    decompressedData = DecompressStream(compressedData, (int)entry.FileSize);
-                                    entry.FileSize = 0;
-                                }
-
-                                using (FileStream output = new FileStream(outputPath, FileMode.Append, FileAccess.Write, FileShare.None))
-                                {
-                                    output.Write(decompressedData);
-                                }
-                            }
-                        }
-                        if (DEBUG) Console.WriteLine($"RDB Data end at 0x{reader.BaseStream.Position:X}");
-
-                        reader.BaseStream.Position = IDRKOffset + (long)entry.EntrySize;
-                        reader.BaseStream.Position += ((0x10 - reader.BaseStream.Position % 0x10) % 0x10);
-
-                        if (DEBUG) Console.WriteLine($"After padding 0x{reader.BaseStream.Position:X}");
-                        if (DEBUG) Console.WriteLine();
-                    }
-
-                    if (Log) Console.WriteLine($"Finished processing FData file {Path.GetFileName(filePath)}");
                 }
             }
             catch (Exception ex)
@@ -434,10 +315,18 @@ namespace fdata_dump
                         {
                             while (entry.FileSize > 0)
                             {
-                                ushort zsize = reader.ReadUInt16();
-
-                                if (DEBUG) Console.WriteLine($"zsize 0x{zsize:X} at 0x{reader.BaseStream.Position - 2:X}");
-                                long junk = reader.ReadInt64();
+                                uint zsize;
+                                if (Mode == FdataMode.FEThreeHopes)
+                                {
+                                    zsize = reader.ReadUInt32();
+                                    if (DEBUG) Console.WriteLine($"zsize 0x{zsize:X} at 0x{reader.BaseStream.Position - 4:X}");
+                                }
+                                else
+                                {
+                                    zsize = reader.ReadUInt16();
+                                    if (DEBUG) Console.WriteLine($"zsize 0x{zsize:X} at 0x{reader.BaseStream.Position - 2:X}");
+                                    reader.ReadInt64(); // junk padding
+                                }
 
                                 byte[] compressedData;
                                 byte[] decompressedData;
