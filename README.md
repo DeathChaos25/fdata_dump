@@ -15,14 +15,14 @@ Currently Confirmed working games:
   - Atelier Yumia
   - FATAL FRAME II: Crimson Butterfly REMAKE
   - 
-  - Fire Emblem Warriors: Three Hopes (use -FE argument in command line)
-  - Nioh 3 (use -FE argument in command line)
+  - Fire Emblem Warriors: Three Hopes (use -v1 argument in command line)
+  - Nioh 3 (use -v1 argument in command line)
   
   
   
 # Optional Command Line arguments
 - First argument is always expected to be the input path, this cannot be anywhere else
-- (Optional) -FE -> toggles FEW Three Hopes dumping compatibility mode
+- (Optional) -v1 -> toggles FEW Three Hopes and Nioh 3 dumping compatibility mode
 - (Optional) -l (this is a lowercase L) -> disables (most) logging output from the dumping process, leaving only the start and end messages (may help speed up dumping if your PC isn't too powerful)
 
 
